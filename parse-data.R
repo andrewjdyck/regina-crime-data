@@ -1,33 +1,34 @@
 
-# library(xlsx)
 library(readxl)
-library(reshape2)
-library(tidyr)
 library(dplyr)
 
-# url <- 'https://onedrive.live.com/redir?resid=FE3A0D85D07DBDF%21710&authkey=%21AMW9Zq9BJ2pxsrI&page=View'
-
-clean_crime_report <- function(year) {
-  file <- paste0('./rawdata/Community Crime ', year, '.xlsx')
-  dd <- read_excel(file, sheet=paste0(year)) %>%
+# A Function to clean up an excel annual crime report file.
+clean_crime_report <- function(yr) {
+  file <- paste0('./rawdata/Community Crime ', yr, '.xlsx')
+  dd <- read_excel(file, sheet=paste0(yr)) %>%
     rename(crime = 'Crime Classes') %>%
-    gather(neighbourhood, incidents, -crime)
+    gather(neighbourhood, incidents, -crime) %>%
+    mutate(year = yr)
 }
 
-years <- 2007:2019
+# as of June 2019, these years are covered by crime reports. 2019 includes incomplete data. (ie. < 12 months)
+years <- 2007:2018
 
+# looping through each crime report and cleaning it using the function noted above.
 ll <- lapply(
   years,
   clean_crime_report
 )
 names(ll) <- years
 
+# collects all crime reports into a single data.frame
 all_data <- bind_rows(ll)
 
-# Export data to CSV
+# Export data to CSV for each annual crime report.
 export_clean_crime_report <- function(df, year) {
   write.csv(df, paste0('./data/crime_report_', year, '.csv'), row.names=FALSE)
 }
-
 lapply(years, function(x) export_clean_crime_report(ll[[as.character(x)]], x))
 
+# Export the full data.frame for all years.
+write.csv(all_data, './data/regina_crime_reports.csv', row.names=FALSE)
