@@ -1,5 +1,6 @@
 
 library(readxl)
+library(tidyr)
 library(dplyr)
 
 # A Function to clean up an excel annual crime report file.
